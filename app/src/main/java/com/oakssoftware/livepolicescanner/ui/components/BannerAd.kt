@@ -12,7 +12,7 @@ import com.oakssoftware.livepolicescanner.util.Constants
 @Composable
 fun BannerAd(
     modifier: Modifier = Modifier,
-    adUnitId: String = Constants.BANNER_TEST // Test Id
+    adUnitId: String = Constants.BANNER_TEST
 ) {
     val context = LocalContext.current
     AndroidView(
@@ -20,7 +20,9 @@ fun BannerAd(
         factory = {
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
-                this.adUnitId = adUnitId //Constants.BANNER_TEST
+                this.adUnitId =
+                    //adUnitId
+                    Constants.BANNER_TEST
                 loadAd(AdRequest.Builder().build())
             }
         },

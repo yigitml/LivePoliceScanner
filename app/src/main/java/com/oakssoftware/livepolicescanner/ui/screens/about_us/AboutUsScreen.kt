@@ -26,7 +26,7 @@ fun AboutUsScreen(
 ) {
     Scaffold(
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(8.dp), adUnitId = Constants.BANNER_ABOUT_US)
+            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_ABOUT_US)
         }
     ) { innerPadding ->
         Surface(

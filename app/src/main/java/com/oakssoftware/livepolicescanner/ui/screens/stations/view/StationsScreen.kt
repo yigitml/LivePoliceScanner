@@ -1,5 +1,7 @@
 package com.oakssoftware.livepolicescanner.ui.screens.stations.view
 
+import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,12 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.oakssoftware.livepolicescanner.ads.AdManager
 import com.oakssoftware.livepolicescanner.domain.model.Station
 import com.oakssoftware.livepolicescanner.ui.Screen
 import com.oakssoftware.livepolicescanner.ui.ScreenState
@@ -58,6 +62,7 @@ fun StationsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     var isSearching by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
+    val activity = LocalActivity.current
 
     Scaffold(
         modifier = Modifier
@@ -80,7 +85,7 @@ fun StationsScreen(
             )
         },
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(8.dp), adUnitId = Constants.BANNER_LIST_ITEM)
+            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_LIST_ITEM)
         }
     ) { innerPadding ->
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -93,7 +98,8 @@ fun StationsScreen(
                     innerPadding,
                     state.stations,
                     navController,
-                    viewModel
+                    viewModel,
+                    activity
                 )
             }
         }
@@ -146,16 +152,25 @@ fun StationsList(
     innerPadding: PaddingValues,
     stations: List<Station>,
     navController: NavController,
-    viewModel: StationsViewModel
+    viewModel: StationsViewModel,
+    activity: Activity?
 ) {
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
         itemsIndexed(
             items = stations,
             key = { _, station -> station.uid }
-        ) { index, station ->
+        ) { _, station ->
             StationListItem(
                 station = station,
-                onItemClick = { navController.navigate(Screen.StationDetailScreen.route + "/${it.uid}") { launchSingleTop = true } },
+                onItemClick = {
+                    val navigate = {
+                        navController.navigate(Screen.StationDetailScreen.route + "/${it.uid}") { launchSingleTop = true }
+                    }
+                    // Show interstitial only on user click, then continue navigation
+                    activity?.let { act ->
+                        AdManager.showIfEligible(act) { navigate() }
+                    } ?: run { navigate() }
+                },
                 onFavoriteButtonClick = {
                     viewModel.onEvent(
                         StationsEvent.UpdateStation(
@@ -166,9 +181,6 @@ fun StationsList(
                     )
                 }
             )
-            if ((index + 1) % 4 == 0) {
-                BannerAd(Modifier.fillMaxWidth().padding(8.dp), adUnitId = Constants.BANNER_LIST)
-            }
         }
     }
 }

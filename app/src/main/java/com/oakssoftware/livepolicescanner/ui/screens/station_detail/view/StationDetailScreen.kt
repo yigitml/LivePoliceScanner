@@ -60,7 +60,7 @@ fun StationDetailScreen(
 
     Scaffold(
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(8.dp), adUnitId = Constants.BANNER_DETAIL)
+            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_DETAIL)
         }
     ) { innerPadding ->
         Surface(

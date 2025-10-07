@@ -1,4 +1,4 @@
-import org.gradle.kotlin.dsl.release
+import org.gradle.kotlin.dsl.implementation
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "com.oakssoftware.livepolicescanner"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.oakssoftware.livepolicescanner"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 80
         versionName = "9.4"
 
@@ -106,9 +106,10 @@ dependencies {
     ksp(libs.androidx.room.room.compiler)
     annotationProcessor(libs.androidx.room.room.compiler)
 
-    // Coil
-    implementation(libs.coil.compose)
-
     // Admob
     implementation(libs.play.services.ads)
+
+    // Review
+    implementation(libs.review)
+    implementation(libs.review.ktx)
 }

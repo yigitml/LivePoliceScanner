@@ -24,11 +24,13 @@ import com.oakssoftware.livepolicescanner.util.Constants
 @Composable
 fun HomeScreen(
     ip: PaddingValues,
-    navController: NavController
+    navController: NavController,
+    onRateUsClick: () -> Unit,
+    onShareClick: () -> Unit
 ) {
     Scaffold(
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(8.dp), adUnitId = Constants.BANNER_HOME)
+            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_HOME)
         }
     ) { innerPadding ->
         Surface(modifier = Modifier.fillMaxSize().padding(ip).padding(innerPadding)) {
@@ -63,17 +65,16 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton(text = "About Us") {
-                        navController.navigate(Screen.AboutUsScreen.route)
                     }
                     Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton("Share") {
-
+                        onShareClick()
                     }
                     Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton("Rate Us") {
-
+                        onRateUsClick()
                     }
                 }
             }

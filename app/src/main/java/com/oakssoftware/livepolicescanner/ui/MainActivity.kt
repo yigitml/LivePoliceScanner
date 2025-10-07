@@ -1,5 +1,6 @@
 package com.oakssoftware.livepolicescanner.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,9 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -22,6 +20,9 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.play.core.review.ReviewException
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.review.model.ReviewErrorCode
 import com.oakssoftware.livepolicescanner.ui.screens.about_us.AboutUsScreen
 import com.oakssoftware.livepolicescanner.ui.screens.home.HomeScreen
 import com.oakssoftware.livepolicescanner.ui.screens.station_detail.view.StationDetailScreen
@@ -29,11 +30,11 @@ import com.oakssoftware.livepolicescanner.ui.screens.stations.view.StationsScree
 import com.oakssoftware.livepolicescanner.ui.theme.PoliceScannerProTheme
 import com.oakssoftware.livepolicescanner.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import com.oakssoftware.livepolicescanner.ads.AdManager
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var interstitialAd: InterstitialAd? = null
-    private var adShownOnDetailScreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
         MobileAds.setRequestConfiguration(configuration)
         MobileAds.initialize(this@MainActivity) {}
-        loadInterstitialAd()
+        AdManager.preload(this, Constants.INTERSTITIAL_TEST)
 
         setContent {
             PoliceScannerProTheme {
@@ -54,16 +55,42 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.Companion.fillMaxSize()
                 ) { innerPadding ->
                     val navController = rememberNavController()
-                    
-                    // Add destination observer to show interstitial when StationDetail opens
-                    ObserveNavigationAndShowAd(navController)
 
                     NavHost(
                         navController = navController,
                         startDestination = Screen.HomeScreen.route
                     ) {
                         composable(route = Screen.HomeScreen.route) {
-                            HomeScreen(innerPadding, navController)
+                            HomeScreen(innerPadding, navController, {
+                                val manager = ReviewManagerFactory.create(this@MainActivity)
+
+                                val request = manager.requestReviewFlow()
+                                request.addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val reviewInfo = task.result
+                                        val flow =
+                                            manager.launchReviewFlow(this@MainActivity, reviewInfo)
+                                        flow.addOnCompleteListener {
+                                            println("flow.onComplete")
+                                        }
+                                    } else {
+                                        @ReviewErrorCode val reviewErrorCode = (task.getException() as ReviewException).errorCode
+                                        println(reviewErrorCode)
+                                    }
+                                }
+                            }) {
+                                val sendIntent: Intent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "https://play.google.com/store/apps/details?id=com.oakssoftware.livepolicescanner"
+                                    )
+                                    type = "text/plain"
+                                }
+
+                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                startActivity(shareIntent)
+                            }
                         }
 
                         composable(route = Screen.StationsScreen.route) {
@@ -80,47 +107,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
-    }
-
-    @Composable
-    private fun ObserveNavigationAndShowAd(navController: NavController) {
-        val currentBackStack = navController.currentBackStackEntryAsState()
-        
-        LaunchedEffect(currentBackStack.value) {
-            // Check if current destination is StationDetail screen
-            val currentRoute = currentBackStack.value?.destination?.route
-            if (currentRoute != null && 
-                currentRoute.startsWith(Screen.StationDetailScreen.route) && 
-                !adShownOnDetailScreen) {
-                showInterstitialAd()
-                adShownOnDetailScreen = true
-            }
-        }
-    }
-    
-    private fun loadInterstitialAd(
-        adUnitId: String = Constants.INTERSTITIAL_GENERAL
-    ) {
-        InterstitialAd.load(
-            this,
-            adUnitId,
-            AdRequest.Builder().build(),
-            object : InterstitialAdLoadCallback() {
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    interstitialAd = null
-                }
-
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                }
-            }
-        )
-    }
-
-    private fun showInterstitialAd() {
-        interstitialAd?.show(this) ?: run {
-            loadInterstitialAd()
         }
     }
 }
