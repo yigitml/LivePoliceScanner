@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.oakssoftware.livepolicescanner.ads.AdManager
 import com.oakssoftware.livepolicescanner.domain.model.Station
 import com.oakssoftware.livepolicescanner.ui.Screen
 import com.oakssoftware.livepolicescanner.ui.ScreenState
@@ -166,10 +165,7 @@ fun StationsList(
                     val navigate = {
                         navController.navigate(Screen.StationDetailScreen.route + "/${it.uid}") { launchSingleTop = true }
                     }
-                    // Show interstitial only on user click, then continue navigation
-                    activity?.let { act ->
-                        AdManager.showIfEligible(act) { navigate() }
-                    } ?: run { navigate() }
+                    navigate()
                 },
                 onFavoriteButtonClick = {
                     viewModel.onEvent(
