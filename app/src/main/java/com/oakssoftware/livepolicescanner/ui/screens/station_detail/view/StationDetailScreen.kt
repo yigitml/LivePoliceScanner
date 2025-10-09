@@ -5,12 +5,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
@@ -60,8 +62,21 @@ fun StationDetailScreen(
 
     Scaffold(
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_DETAIL)
-        }
+            Column(modifier = Modifier.padding(ip)) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.LightGray)
+                )
+                BannerAd(Modifier.fillMaxWidth().padding(4.dp), adUnitId = Constants.BANNER_DETAIL)
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.LightGray)
+                )
+            }        }
     ) { innerPadding ->
         Surface(
             modifier = Modifier
@@ -102,8 +117,8 @@ fun StationDetailsContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            StationImageCard(station, modifier = Modifier.weight(0.615f))
-            StationControlsCard(station, viewModel, modifier = Modifier.weight(0.385f), mediaState)
+            //StationImageCard(station, modifier = Modifier.weight(0.615f))
+            StationControlsCard(station, viewModel, Modifier, mediaState)
         }
     }
 }
@@ -187,6 +202,26 @@ fun StationControlsCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = station.name,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 32.dp)
+                    .fillMaxWidth(),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Text(
+                text = station.location,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 2
+            )
+
             MediaControlPanel(viewModel, mediaState, station)
         }
     }

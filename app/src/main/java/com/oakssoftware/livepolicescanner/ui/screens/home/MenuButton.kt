@@ -24,8 +24,8 @@ fun MenuButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .padding(horizontal = 32.dp),
+            .height(64.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 16.dp)
     ) {

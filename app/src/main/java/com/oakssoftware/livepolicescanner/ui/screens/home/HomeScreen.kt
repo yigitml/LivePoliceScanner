@@ -1,11 +1,14 @@
 package com.oakssoftware.livepolicescanner.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -14,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,7 +34,21 @@ fun HomeScreen(
 ) {
     Scaffold(
         bottomBar = {
-            BannerAd(Modifier.fillMaxWidth().padding(16.dp), adUnitId = Constants.BANNER_HOME)
+            Column(modifier = Modifier.padding(ip)) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.LightGray)
+                )
+                BannerAd(Modifier.fillMaxWidth().padding(4.dp), adUnitId = Constants.BANNER_HOME)
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.LightGray)
+                )
+            }
         }
     ) { innerPadding ->
         Surface(modifier = Modifier.fillMaxSize().padding(ip).padding(innerPadding)) {
@@ -41,7 +59,7 @@ fun HomeScreen(
                 Text(
                     text = "Live Police Scanner",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 64.dp),
+                    modifier = Modifier.padding(top = 16.dp),
                     fontSize = 32.sp
                 )
 
@@ -54,7 +72,7 @@ fun HomeScreen(
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -62,16 +80,14 @@ fun HomeScreen(
                     MenuButton("Police Scanner") {
                         navController.navigate(Screen.StationsScreen.route)
                     }
-                    Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton(text = "About Us") {
+                        navController.navigate(Screen.AboutUsScreen.route)
                     }
-                    Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton("Share") {
                         onShareClick()
                     }
-                    Spacer(modifier = Modifier.padding(16.dp))
 
                     MenuButton("Rate Us") {
                         onRateUsClick()

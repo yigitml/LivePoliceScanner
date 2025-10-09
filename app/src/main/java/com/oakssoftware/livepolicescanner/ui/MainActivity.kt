@@ -27,8 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val TAG = "MainActivity"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,11 +36,8 @@ class MainActivity : ComponentActivity() {
             .setTestDeviceIds(testDeviceIds)
             .build()
 
-        Log.d(TAG, "Initializing Mobile Ads SDK")
         MobileAds.setRequestConfiguration(configuration)
-        MobileAds.initialize(this@MainActivity) {
-            Log.d(TAG, "Mobile Ads SDK initialized successfully")
-        }
+        MobileAds.initialize(this@MainActivity)
 
         setContent {
             PoliceScannerProTheme {
