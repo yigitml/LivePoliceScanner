@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
@@ -62,21 +63,8 @@ fun StationDetailScreen(
 
     Scaffold(
         bottomBar = {
-            Column(modifier = Modifier.padding(ip)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-                BannerAd(Modifier.fillMaxWidth().padding(4.dp), adUnitId = Constants.BANNER_DETAIL)
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-            }        }
+            BannerAd(Modifier.fillMaxWidth().padding(ip).navigationBarsPadding(), adUnitId = Constants.BANNER_DETAIL)
+        }
     ) { innerPadding ->
         Surface(
             modifier = Modifier

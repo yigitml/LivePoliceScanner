@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -30,21 +31,8 @@ fun AboutUsScreen(
 ) {
     Scaffold(
         bottomBar = {
-            Column(modifier = Modifier.padding(ip)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-                BannerAd(Modifier.fillMaxWidth().padding(4.dp), adUnitId = Constants.BANNER_ABOUT_US)
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-            }        }
+            BannerAd(Modifier.fillMaxWidth().padding(ip).navigationBarsPadding(), adUnitId = Constants.BANNER_ABOUT_US)
+        }
     ) { innerPadding ->
         Surface(
             Modifier.padding(ip).padding(innerPadding)

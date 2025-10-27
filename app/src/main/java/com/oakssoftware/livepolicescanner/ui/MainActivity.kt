@@ -29,7 +29,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
         val testDeviceIds = listOf("B4947C6876E93FB3CDC4C07FB519AD01")
         val configuration = RequestConfiguration.Builder()

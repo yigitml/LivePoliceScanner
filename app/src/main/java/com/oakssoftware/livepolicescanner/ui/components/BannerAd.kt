@@ -21,8 +21,8 @@ fun BannerAd(
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
                 this.adUnitId =
-                    //adUnitId
-                    Constants.BANNER_TEST
+                    adUnitId
+                    //Constants.BANNER_TEST
                 loadAd(AdRequest.Builder().build())
             }
         },

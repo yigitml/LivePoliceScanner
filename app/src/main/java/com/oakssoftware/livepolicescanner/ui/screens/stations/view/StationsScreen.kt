@@ -10,13 +10,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,13 +33,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.oakssoftware.livepolicescanner.R
 import com.oakssoftware.livepolicescanner.domain.model.Station
 import com.oakssoftware.livepolicescanner.ui.Screen
 import com.oakssoftware.livepolicescanner.ui.ScreenState
@@ -87,21 +87,8 @@ fun StationsScreen(
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.padding(ip)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-                BannerAd(Modifier.fillMaxWidth().padding(4.dp), adUnitId = Constants.BANNER_LIST)
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.LightGray)
-                )
-            }        }
+            BannerAd(Modifier.fillMaxWidth().padding(ip).navigationBarsPadding(), adUnitId = Constants.BANNER_LIST)
+        }
     ) { innerPadding ->
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             when (state.screenState) {
@@ -145,14 +132,14 @@ fun StationsTopAppBar(
             navigationIcon = {
                 IconButton(onClick = onToggleFavorites) {
                     Icon(
-                        imageVector = if (isFavoritesOpen) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        imageVector = if (isFavoritesOpen) ImageVector.vectorResource(R.drawable.baseline_favorite_24) else ImageVector.vectorResource(R.drawable.outline_favorite_24),
                         contentDescription = "Favorite Stations"
                     )
                 }
             },
             actions = {
                 IconButton(onClick = { onSearchClosed() }) {
-                    Icon(imageVector = Icons.Filled.Search, contentDescription = "Search Stations")
+                    Icon(imageVector = ImageVector.vectorResource(R.drawable.outline_search_24), contentDescription = "Search Stations")
                 }
             },
             scrollBehavior = scrollBehavior
