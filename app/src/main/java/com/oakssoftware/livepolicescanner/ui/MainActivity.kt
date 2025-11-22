@@ -2,10 +2,8 @@ package com.oakssoftware.livepolicescanner.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
@@ -31,54 +29,62 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val testDeviceIds = listOf("B4947C6876E93FB3CDC4C07FB519AD01")
-        val configuration = RequestConfiguration.Builder()
-            .setTestDeviceIds(testDeviceIds)
-            .build()
+        val configuration = RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
 
         MobileAds.setRequestConfiguration(configuration)
         MobileAds.initialize(this@MainActivity)
 
         setContent {
             PoliceScannerProTheme {
-                Scaffold(
-                    modifier = Modifier.Companion.fillMaxSize()
-                ) { innerPadding ->
+                Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
 
                     NavHost(
-                        navController = navController,
-                        startDestination = Screen.HomeScreen.route
+                            navController = navController,
+                            startDestination = Screen.HomeScreen.route
                     ) {
                         composable(route = Screen.HomeScreen.route) {
-                            HomeScreen(innerPadding, navController, {
-                                val manager = ReviewManagerFactory.create(this@MainActivity)
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            HomeScreen(
+                                    innerPadding,
+                                    navController,
+                                    {
+                                        val manager = ReviewManagerFactory.create(context)
 
-                                val request = manager.requestReviewFlow()
-                                request.addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val reviewInfo = task.result
-                                        val flow =
-                                            manager.launchReviewFlow(this@MainActivity, reviewInfo)
-                                        flow.addOnCompleteListener {
-                                            println("flow.onComplete")
+                                        val request = manager.requestReviewFlow()
+                                        request.addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                val reviewInfo = task.result
+                                                val flow =
+                                                        manager.launchReviewFlow(
+                                                                context as android.app.Activity,
+                                                                reviewInfo
+                                                        )
+                                                flow.addOnCompleteListener {
+                                                    println("flow.onComplete")
+                                                }
+                                            } else {
+                                                @ReviewErrorCode
+                                                val reviewErrorCode =
+                                                        (task.getException() as ReviewException)
+                                                                .errorCode
+                                                println(reviewErrorCode)
+                                            }
                                         }
-                                    } else {
-                                        @ReviewErrorCode val reviewErrorCode = (task.getException() as ReviewException).errorCode
-                                        println(reviewErrorCode)
                                     }
-                                }
-                            }) {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "https://play.google.com/store/apps/details?id=com.oakssoftware.livepolicescanner"
-                                    )
-                                    type = "text/plain"
-                                }
+                            ) {
+                                val sendIntent: Intent =
+                                        Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            putExtra(
+                                                    Intent.EXTRA_TEXT,
+                                                    "https://play.google.com/store/apps/details?id=com.oakssoftware.livepolicescanner"
+                                            )
+                                            type = "text/plain"
+                                        }
 
                                 val shareIntent = Intent.createChooser(sendIntent, null)
-                                startActivity(shareIntent)
+                                context.startActivity(shareIntent)
                             }
                         }
 
@@ -86,9 +92,11 @@ class MainActivity : ComponentActivity() {
                             StationsScreen(innerPadding, navController)
                         }
 
-                        composable(route = Screen.StationDetailScreen.route + "/{${Constants.STATION_ID}}") {
-                            StationDetailScreen(innerPadding)
-                        }
+                        composable(
+                                route =
+                                        Screen.StationDetailScreen.route +
+                                                "/{${Constants.STATION_ID}}"
+                        ) { StationDetailScreen(innerPadding) }
 
                         composable(route = Screen.AboutUsScreen.route) {
                             AboutUsScreen(innerPadding)

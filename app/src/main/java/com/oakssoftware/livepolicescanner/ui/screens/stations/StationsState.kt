@@ -6,8 +6,11 @@ import com.oakssoftware.livepolicescanner.ui.ScreenState
 
 @Immutable
 data class StationsState(
-    val screenState: ScreenState = ScreenState.Loading,
-    val stations: List<Station> = emptyList(),
-    val errorMessage: String = "",
-    val isFavoritesOpen: Boolean = false
+        val screenState: ScreenState = ScreenState.Loading,
+        val stations: List<Station> = emptyList(),
+        val errorMessage: String = "",
+        val isFavoritesOpen: Boolean = false,
+        val selectedTab: StationsTab = StationsTab.Popular,
+        val isSearching: Boolean = false,
+        val searchText: String = ""
 )

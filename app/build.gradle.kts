@@ -14,8 +14,8 @@ android {
         applicationId = "com.oakssoftware.livepolicescanner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 85
-        versionName = "9.9"
+        versionCode = 86
+        versionName = "10.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

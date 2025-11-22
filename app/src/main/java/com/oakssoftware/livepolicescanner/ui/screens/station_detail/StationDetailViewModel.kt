@@ -15,17 +15,27 @@ import com.oakssoftware.livepolicescanner.ui.ScreenState
 import com.oakssoftware.livepolicescanner.util.Constants
 import com.oakssoftware.livepolicescanner.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class StationDetailViewModel @Inject constructor(
-    private val getStationDetailUseCase: GetStationDetailUseCase,
-    private val getStationsUseCase: GetStationsUseCase,
-    private val updateStationsUseCase: UpdateStationsUseCase,
-    stateHandle: SavedStateHandle
+class StationDetailViewModel
+@Inject
+constructor(
+        private val getStationDetailUseCase: GetStationDetailUseCase,
+        private val getStationsUseCase: GetStationsUseCase,
+        private val updateStationsUseCase: UpdateStationsUseCase,
+        stateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    companion object {
+        // Static flag to track if ad has been shown this app session
+        private var hasShownInterstitialThisSession = false
+    }
 
     private val _state = mutableStateOf(StationDetailState())
     val state: State<StationDetailState> = _state
@@ -34,80 +44,129 @@ class StationDetailViewModel @Inject constructor(
     val mediaPlayerState: State<MediaState> = _mediaState
 
     private var mediaPlayer: MediaPlayer? = null
+    private var timerJob: Job? = null
+    private var startTime: Long = 0
 
     init {
         stateHandle.get<String>(Constants.STATION_ID)?.toIntOrNull()?.let { stationId ->
             getStationDetail(stationId)
             getFavoriteStations()
-        } ?: run {
-            _state.value = StationDetailState(
-                screenState = ScreenState.Error,
-                errorMessage = "Error getting station detail"
-            )
         }
+                ?: run {
+                    _state.value =
+                            StationDetailState(
+                                    screenState = ScreenState.Error,
+                                    errorMessage = "Error getting station detail"
+                            )
+                }
     }
 
     private fun handleStationsResource(resource: Resource<List<Station>>) {
-        _state.value = state.value.copy(
-            favoriteStations = when (resource) {
-                is Resource.Success -> resource.data ?: emptyList()
-                else -> emptyList()
-            },
-            errorMessage = resource.message
-        )
+        _state.value =
+                state.value.copy(
+                        favoriteStations =
+                                when (resource) {
+                                    is Resource.Success -> resource.data ?: emptyList()
+                                    else -> emptyList()
+                                },
+                        errorMessage = resource.message
+                )
     }
 
     private fun handleStationResource(resource: Resource<Station>) {
-        _state.value = state.value.copy(
-            screenState = when (resource) {
-                is Resource.Success -> ScreenState.Success
-                is Resource.Loading -> ScreenState.Loading
-                is Resource.Error -> ScreenState.Error
-            },
-            station = resource.data,
-            errorMessage = resource.message
-        )
+        _state.value =
+                state.value.copy(
+                        screenState =
+                                when (resource) {
+                                    is Resource.Success -> ScreenState.Success
+                                    is Resource.Loading -> ScreenState.Loading
+                                    is Resource.Error -> ScreenState.Error
+                                },
+                        station = resource.data,
+                        errorMessage = resource.message
+                )
     }
 
     private fun getStationDetail(stationId: Int) {
-        getStationDetailUseCase.executeGetStationDetail(stationId)
-            .onEach { handleStationResource(it) }
-            .launchIn(viewModelScope)
+        getStationDetailUseCase
+                .executeGetStationDetail(stationId)
+                .onEach { handleStationResource(it) }
+                .launchIn(viewModelScope)
     }
 
     private fun getFavoriteStations() {
-        getStationsUseCase.executeGetStations(isFavToggleOpen = true)
-            .onEach { handleStationsResource(it) }
-            .launchIn(viewModelScope)
+        getStationsUseCase
+                .executeGetStations(isFavToggleOpen = true)
+                .onEach { handleStationsResource(it) }
+                .launchIn(viewModelScope)
     }
 
     private fun updateStation(station: Station) {
-        updateStationsUseCase.executeUpdateStation(station)
-            .onEach { handleStationResource(it) }
-            .launchIn(viewModelScope)
+        // Update local state immediately without triggering reload
+        _state.value = state.value.copy(station = station)
+
+        // Persist to database in background
+        updateStationsUseCase.executeUpdateStation(station).launchIn(viewModelScope)
     }
 
+    // Interstitial ad management (per app session)
+    fun shouldShowInterstitialAd(): Boolean {
+        return !hasShownInterstitialThisSession
+    }
+
+    fun markInterstitialAdShown() {
+        hasShownInterstitialThisSession = true
+    }
     private fun playMedia(url: String) {
         if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                setDataSource(url)
-                prepareAsync()
-                setOnPreparedListener {
-                    start()
-                    _mediaState.value = MediaState(PlayerState.PLAYING, true)
-                }
-            }
+            mediaPlayer =
+                    MediaPlayer().apply {
+                        setAudioAttributes(
+                                AudioAttributes.Builder()
+                                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                                        .build()
+                        )
+                        setDataSource(url)
+                        setOnPreparedListener {
+                            start()
+                            startTimer()
+                            _mediaState.value =
+                                    MediaState(
+                                            PlayerState.PLAYING,
+                                            true,
+                                            ConnectionQuality.EXCELLENT,
+                                            _mediaState.value.listeningDurationSeconds
+                                    )
+                        }
+                        setOnErrorListener { _, _, _ ->
+                            stopTimer()
+                            _mediaState.value =
+                                    MediaState(PlayerState.IDLE, false, ConnectionQuality.POOR)
+                            release()
+                            mediaPlayer = null
+                            true
+                        }
+                        _mediaState.value =
+                                MediaState(
+                                        PlayerState.LOADING,
+                                        _mediaState.value.isConnectionEstablished,
+                                        ConnectionQuality.UNKNOWN,
+                                        _mediaState.value.listeningDurationSeconds
+                                )
+                        prepareAsync()
+                    }
         } else {
             if (_mediaState.value.playerState == PlayerState.PAUSED) {
                 mediaPlayer?.start()
+                startTimer()
                 _mediaState.value =
-                    MediaState(PlayerState.PLAYING, _mediaState.value.isConnectionEstablished)
+                        MediaState(
+                                PlayerState.PLAYING,
+                                _mediaState.value.isConnectionEstablished,
+                                _mediaState.value.connectionQuality,
+                                _mediaState.value.listeningDurationSeconds
+                        )
             }
         }
     }
@@ -115,8 +174,14 @@ class StationDetailViewModel @Inject constructor(
     private fun pauseMedia() {
         if (_mediaState.value.playerState == PlayerState.PLAYING) {
             mediaPlayer?.pause()
+            stopTimer()
             _mediaState.value =
-                MediaState(PlayerState.PAUSED, _mediaState.value.isConnectionEstablished)
+                    MediaState(
+                            PlayerState.PAUSED,
+                            _mediaState.value.isConnectionEstablished,
+                            _mediaState.value.connectionQuality,
+                            _mediaState.value.listeningDurationSeconds
+                    )
         }
     }
 
@@ -124,8 +189,36 @@ class StationDetailViewModel @Inject constructor(
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        stopTimer()
         _mediaState.value =
-            MediaState(PlayerState.STOPPED, _mediaState.value.isConnectionEstablished)
+                MediaState(
+                        PlayerState.STOPPED,
+                        false, // Reset connection to disconnected
+                        ConnectionQuality.UNKNOWN,
+                        0
+                )
+    }
+
+    private fun startTimer() {
+        if (timerJob == null || timerJob?.isActive == false) {
+            startTime = System.currentTimeMillis()
+            timerJob =
+                    viewModelScope.launch {
+                        while (true) {
+                            delay(1000)
+                            val elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000
+                            _mediaState.value =
+                                    _mediaState.value.copy(
+                                            listeningDurationSeconds = elapsedSeconds
+                                    )
+                        }
+                    }
+        }
+    }
+
+    private fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
     }
 
     fun onEvent(event: StationDetailEvent) {
@@ -143,6 +236,7 @@ class StationDetailViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        stopTimer()
         mediaPlayer?.let {
             if (it.isPlaying) it.stop()
             it.release()
