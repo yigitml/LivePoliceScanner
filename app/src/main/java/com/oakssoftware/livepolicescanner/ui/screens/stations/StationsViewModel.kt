@@ -29,6 +29,8 @@ constructor(
 ) : ViewModel() {
 
     companion object {
+        private var hasShownInterstitial = false
+
         private val POPULAR_STATION_IDS =
                 listOf(
                         12876,
@@ -144,8 +146,8 @@ constructor(
                 val newIsSearching = !state.value.isSearching
                 _state.value =
                         state.value.copy(
-                                isSearching = newIsSearching,
-                                searchText = if (!newIsSearching) "" else state.value.searchText
+                                 isSearching = newIsSearching,
+                                 searchText = if (!newIsSearching) "" else state.value.searchText
                         )
                 getStations()
             }
@@ -159,5 +161,13 @@ constructor(
                 getStations()
             }
         }
+    }
+
+    fun shouldShowInterstitial(): Boolean {
+        return !hasShownInterstitial
+    }
+
+    fun markInterstitialShown() {
+        hasShownInterstitial = true
     }
 }

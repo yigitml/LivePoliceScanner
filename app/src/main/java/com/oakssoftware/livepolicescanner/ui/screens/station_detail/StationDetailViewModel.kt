@@ -32,10 +32,7 @@ constructor(
         stateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    companion object {
-        // Static flag to track if ad has been shown this app session
-        private var hasShownInterstitialThisSession = false
-    }
+
 
     private val _state = mutableStateOf(StationDetailState())
     val state: State<StationDetailState> = _state
@@ -109,14 +106,7 @@ constructor(
         updateStationsUseCase.executeUpdateStation(station).launchIn(viewModelScope)
     }
 
-    // Interstitial ad management (per app session)
-    fun shouldShowInterstitialAd(): Boolean {
-        return !hasShownInterstitialThisSession
-    }
 
-    fun markInterstitialAdShown() {
-        hasShownInterstitialThisSession = true
-    }
     private fun playMedia(url: String) {
         if (mediaPlayer == null) {
             mediaPlayer =

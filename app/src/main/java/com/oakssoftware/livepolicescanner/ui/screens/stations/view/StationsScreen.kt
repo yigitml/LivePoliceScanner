@@ -27,6 +27,8 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -196,6 +198,38 @@ fun StationsList(
         viewModel: StationsViewModel,
         activity: Activity?
 ) {
+        var shouldShowAd by remember { mutableStateOf(false) }
+        var pendingStationNavigation by remember { mutableStateOf<Station?>(null) }
+
+        // Interstitial Ad Handler
+        if (shouldShowAd && pendingStationNavigation != null) {
+                com.oakssoftware.livepolicescanner.ui.components.ShowInterstitialAd(
+                        activity = activity,
+                        adUnitId = Constants.INTERSTITIAL_MAIN,
+                        shouldShow = shouldShowAd,
+                        onAdDismissed = {
+                                viewModel.markInterstitialShown()
+                                shouldShowAd = false
+                                pendingStationNavigation?.let { station ->
+                                        navController.navigate(
+                                                Screen.StationDetailScreen.route + "/${station.uid}"
+                                        ) { launchSingleTop = true }
+                                }
+                                pendingStationNavigation = null
+                        },
+                        onAdFailed = {
+                                viewModel.markInterstitialShown()
+                                shouldShowAd = false
+                                pendingStationNavigation?.let { station ->
+                                        navController.navigate(
+                                                Screen.StationDetailScreen.route + "/${station.uid}"
+                                        ) { launchSingleTop = true }
+                                }
+                                pendingStationNavigation = null
+                        }
+                )
+        }
+
         // Calculate total items including ads (1 ad every 4 stations)
         val adInterval = 4
         val numberOfAds = if (stations.size > adInterval) (stations.size - 1) / adInterval else 0
@@ -243,15 +277,17 @@ fun StationsList(
                                         val station = stations[stationIndex]
                                         StationListItem(
                                                 station = station,
-                                                onItemClick = {
-                                                        val navigate = {
+                                                onItemClick = { clickedStation ->
+                                                        if (viewModel.shouldShowInterstitial()) {
+                                                                pendingStationNavigation = clickedStation
+                                                                shouldShowAd = true
+                                                        } else {
                                                                 navController.navigate(
                                                                         Screen.StationDetailScreen
                                                                                 .route +
-                                                                                "/${it.uid}"
+                                                                                "/${clickedStation.uid}"
                                                                 ) { launchSingleTop = true }
                                                         }
-                                                        navigate()
                                                 },
                                                 onFavoriteButtonClick = {
                                                         viewModel.onEvent(

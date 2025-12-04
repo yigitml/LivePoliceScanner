@@ -19,10 +19,13 @@ fun BannerAd(
         modifier = modifier,
         factory = {
             AdView(context).apply {
-                setAdSize(AdSize.BANNER)
-                this.adUnitId =
-                    adUnitId
-                    //Constants.BANNER_TEST
+                val displayMetrics = context.resources.displayMetrics
+                val density = displayMetrics.density
+                val widthPixels = displayMetrics.widthPixels
+                val adWidth = (widthPixels / density).toInt()
+                
+                setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidth))
+                this.adUnitId = adUnitId
                 loadAd(AdRequest.Builder().build())
             }
         },

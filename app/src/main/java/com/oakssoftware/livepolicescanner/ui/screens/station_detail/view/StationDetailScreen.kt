@@ -74,33 +74,33 @@ fun StationDetailScreen(ip: PaddingValues, viewModel: StationDetailViewModel = h
         val state = viewModel.state.value
         val mediaState = viewModel.mediaPlayerState.value
         val activity = LocalActivity.current
-        var shouldShowAd by remember { mutableStateOf(false) }
+
 
         // Check if we should show the interstitial ad after a brief delay
-        LaunchedEffect(Unit) {
-                delay(500) // Let user see the screen first (AdMob compliant)
-                if (viewModel.shouldShowInterstitialAd()) {
-                        shouldShowAd = true
-                }
-        }
+        // LaunchedEffect(Unit) {
+        //         delay(500) // Let user see the screen first (AdMob compliant)
+        //         if (viewModel.shouldShowInterstitialAd()) {
+        //                 shouldShowAd = true
+        //         }
+        // }
 
         // Show interstitial ad if needed
-        if (shouldShowAd) {
-                ShowInterstitialAd(
-                        activity = activity,
-                        adUnitId = Constants.INTERSTITIAL_MAIN,
-                        shouldShow = shouldShowAd,
-                        onAdDismissed = {
-                                viewModel.markInterstitialAdShown()
-                                shouldShowAd = false
-                        },
-                        onAdFailed = {
-                                // Mark as shown even on failure to avoid repeated attempts
-                                viewModel.markInterstitialAdShown()
-                                shouldShowAd = false
-                        }
-                )
-        }
+        // if (shouldShowAd) {
+        //         ShowInterstitialAd(
+        //                 activity = activity,
+        //                 adUnitId = Constants.INTERSTITIAL_MAIN,
+        //                 shouldShow = shouldShowAd,
+        //                 onAdDismissed = {
+        //                         viewModel.markInterstitialAdShown()
+        //                         shouldShowAd = false
+        //                 },
+        //                 onAdFailed = {
+        //                         // Mark as shown even on failure to avoid repeated attempts
+        //                         viewModel.markInterstitialAdShown()
+        //                         shouldShowAd = false
+        //                 }
+        //         )
+        // }
 
         Scaffold(
                 topBar = {
